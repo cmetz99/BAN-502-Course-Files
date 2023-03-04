@@ -1,0 +1,201 @@
+---
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(caret)
+library(gridExtra)
+library(vip)
+library(rpart)
+library(rpart.plot)
+library(rattle)
+library(RColorBrewer)
+library(tidyverse)
+library(VIM)
+library(mice)
+library(GGally)
+library(lmtest)
+library(glmnet)
+library(ggcorrplot)
+library(MASS)
+library(car)
+library(lubridate)
+library(splines)
+library(e1071)
+library(ROCR)
+library(naniar)
+library(UpSetR)
+library(polycor)
+library(corrplot)
+```
+
+```{r}
+data = read_csv("train.csv")
+```
+
+```{r}
+str(data)
+summary(data)
+```
+
+```{r}
+data = data %>% mutate(product_code=as_factor(product_code)) %>%
+  mutate(attribute_0=as_factor(attribute_0)) %>%
+  mutate(attribute_1=as_factor(attribute_1)) %>%
+  mutate(failure=as_factor(failure))
+```
+
+```{r}
+str(data)
+summary(data)
+```
+
+```{r}
+gg_miss_var(data)
+```
+
+```{r}
+data2=data %>% drop_na()
+```
+```{r}
+data2 <- data2 %>%
+               rename("M0" = "measurement_0",
+                         "M1"="measurement_1",
+                         "M2"="measurement_2",
+                         "M3"="measurement_3",
+                         "M4"="measurement_4",
+                         "M5"="measurement_5",
+                         "M6"="measurement_6",
+                         "M7"="measurement_7",
+                         "M8"="measurement_8",
+                         "M9"="measurement_9",
+                         "M10"="measurement_10",
+                         "M11"="measurement_11",
+                         "M12"="measurement_12",
+                         "M13"="measurement_13",
+                         "M14"="measurement_14",
+                         "M15"="measurement_15",
+                         "M16"="measurement_16",
+                         "M17"="measurement_17",
+                         "A0"="attribute_0",
+                         "A1"="attribute_1",
+                         "A2"="attribute_2",
+                         "A3"="attribute_3")
+```
+
+```{r}
+ggplot(data2, aes(x=product_code, fill = failure))+
+  geom_bar(position="fill")+
+  labs(x="Product Code",y = "Percentage")
+
+ggplot(data2, aes(x=A0, fill = failure))+
+  geom_bar(position="fill")+
+  labs(x="Attribute 0",y = "Percentage")
+
+ggplot(data2, aes(x=A1, fill = failure))+
+  geom_bar(position="fill")+
+  labs(x="Attribute 1",y = "Percentage")
+```
+```{r}
+ggplot(data2, aes(x=failure, y=loading))+
+  geom_violin(fill="darkblue")+
+  geom_boxplot(width = .5, fill="skyblue", outlier.color="orange", outlier.size=2)
+
+ggplot(data2, aes(x=failure, y=A2))+
+  geom_violin(fill="darkblue")+
+  geom_boxplot(width = .5, fill="skyblue", outlier.color="orange", outlier.size=2)
+
+ggplot(data2, aes(x=failure, y=A3))+
+  geom_violin(fill="darkblue")+
+  geom_boxplot(width = .5, fill="skyblue", outlier.color="orange", outlier.size=2)
+
+ggplot(data2, aes(x=failure, y=M0))+
+  geom_violin(fill="darkblue")+
+  geom_boxplot(width = .5, fill="skyblue", outlier.color="orange", outlier.size=2)
+
+ggplot(data2, aes(x=failure, y=M1))+
+  geom_violin(fill="darkblue")+
+  geom_boxplot(width = .5, fill="skyblue", outlier.color="orange", outlier.size=2)
+
+ggplot(data2, aes(x=failure, y=M2))+
+  geom_violin(fill="darkblue")+
+  geom_boxplot(width = .5, fill="skyblue", outlier.color="orange", outlier.size=2)
+
+ggplot(data2, aes(x=failure, y=M3))+
+  geom_violin(fill="darkblue")+
+  geom_boxplot(width = .5, fill="skyblue", outlier.color="orange", outlier.size=2)
+
+ggplot(data2, aes(x=failure, y=M4))+
+  geom_violin(fill="darkblue")+
+  geom_boxplot(width = .5, fill="skyblue", outlier.color="orange", outlier.size=2)
+
+ggplot(data2, aes(x=failure, y=M5))+
+  geom_violin(fill="darkblue")+
+  geom_boxplot(width = .5, fill="skyblue", outlier.color="orange", outlier.size=2)
+
+ggplot(data2, aes(x=failure, y=M6))+
+  geom_violin(fill="darkblue")+
+  geom_boxplot(width = .5, fill="skyblue", outlier.color="orange", outlier.size=2)
+
+ggplot(data2, aes(x=failure, y=M7))+
+  geom_violin(fill="darkblue")+
+  geom_boxplot(width = .5, fill="skyblue", outlier.color="orange", outlier.size=2)
+
+ggplot(data2, aes(x=failure, y=M8))+
+  geom_violin(fill="darkblue")+
+  geom_boxplot(width = .5, fill="skyblue", outlier.color="orange", outlier.size=2)
+
+ggplot(data2, aes(x=failure, y=M9))+
+  geom_violin(fill="darkblue")+
+  geom_boxplot(width = .5, fill="skyblue", outlier.color="orange", outlier.size=2)
+
+ggplot(data2, aes(x=failure, y=M10))+
+  geom_violin(fill="darkblue")+
+  geom_boxplot(width = .5, fill="skyblue", outlier.color="orange", outlier.size=2)
+
+ggplot(data2, aes(x=failure, y=M11))+
+  geom_violin(fill="darkblue")+
+  geom_boxplot(width = .5, fill="skyblue", outlier.color="orange", outlier.size=2)
+
+ggplot(data2, aes(x=failure, y=M12))+
+  geom_violin(fill="darkblue")+
+  geom_boxplot(width = .5, fill="skyblue", outlier.color="orange", outlier.size=2)
+
+ggplot(data2, aes(x=failure, y=M13))+
+  geom_violin(fill="darkblue")+
+  geom_boxplot(width = .5, fill="skyblue", outlier.color="orange", outlier.size=2)
+
+ggplot(data2, aes(x=failure, y=M14))+
+  geom_violin(fill="darkblue")+
+  geom_boxplot(width = .5, fill="skyblue", outlier.color="orange", outlier.size=2)
+
+ggplot(data2, aes(x=failure, y=M15))+
+  geom_violin(fill="darkblue")+
+  geom_boxplot(width = .5, fill="skyblue", outlier.color="orange", outlier.size=2)
+
+ggplot(data2, aes(x=failure, y=M16))+
+  geom_violin(fill="darkblue")+
+  geom_boxplot(width = .5, fill="skyblue", outlier.color="orange", outlier.size=2)
+
+ggplot(data2, aes(x=failure, y=M17))+
+  geom_violin(fill="darkblue")+
+  geom_boxplot(width = .5, fill="skyblue", outlier.color="orange", outlier.size=2)
+```
+```{r}
+ggcorr(data2)
+```
+
+```{r}
+cor(data2$M17,data2$M8)
+cor(data2$M17,data2$M5)
+cor(data2$A2,data2$A3)
+cor(data2$A2,data2$M0)
+cor(data2$A2,data2$M1)
+cor(data2$A3,data2$M0)
+cor(data2$A3,data2$M1)
+cor(data2$M0,data2$M1)
+```
